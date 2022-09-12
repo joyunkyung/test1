@@ -31,7 +31,7 @@ public class BoardDBBean {
 		int re=-1; // 결과값 분기처리 하기 위해 변수 선언			
 		Connection conn=null; //dbcp 연결위한 참조변수 선언
 		PreparedStatement pstmt=null; //SQL문 사용하기 위한 참조변수 선언
-		ResultSet rs=null;
+		ResultSet rs=null; //쿼리 결과값 받기 위한 참조변수 선언
 //		String sql="INSERT INTO boardt VALUES(?,?,?,?)";
 		String sql="";
 		int number;

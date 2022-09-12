@@ -27,9 +27,10 @@ public class MemberDBBean {
 		return ds.getConnection();
 	}
 	
+	//INSERT
 	public int insertMember(MemberBean member) throws Exception {
 		int re=-1;	// 결과값 분기처리 하기 위해 변수 선언			
-		Connection conn=null;	//dbcp 연결위한 참조변수 선언
+		Connection conn=null;	//dbcp 연결위한 참조변수 선언  / 데이터베이스 연결
 		PreparedStatement pstmt=null; 	//SQL문 사용하기 위한 참조변수 선언
 		String sql="INSERT INTO MEMBERT VALUES(?,?,?,?,?,?)"; //쿼리를 변수로 차용
 		
@@ -60,13 +61,13 @@ public class MemberDBBean {
 		return re;
 	}
 	
-
+//회원가입시 id 중복확인
 	public int confirmID(String id) throws Exception { //getConnection 때문에 Exception 처리
 		int re=-1;// 결과값 분기처리 하기 위해 변수 선언
-		Connection conn=null; //dbcp 연결위한 참조변수 선언
+		Connection conn=null; //dbcp 연결위한 참조변수 선언 / 데이터베이스 연결
 		PreparedStatement pstmt=null; //SQL문 사용하기 위한 참조변수 선언
 		ResultSet rs=null;//  쿼리 결과값 받기 위한 참조변수 선언
-		String sql="SELECT mem_uid FROM MEMBERT WHERE mem_uid=?"; //쿼리를 변수로 차용
+		String sql="SELECT mem_uid FROM MEMBERT WHERE mem_uid=?"; //쿼리를 변수로 차용 //해당 id가 존재 하는지
 		
 		try { //DB 처리를 위해 예외 발생을 위한 try_catch문 사용
 			conn = getConnection();//dbcp 연결해서 conn 참주변수로 받음
@@ -75,53 +76,53 @@ public class MemberDBBean {
 			rs = pstmt.executeQuery(); //select 조회문은 executeQuery 메소드 처리
 			//while or if
 			if (rs.next()) { //쿼리 결과값이 있으면 (결과값 여러개인 경우는 while문 사용)
-				re=1; //아이디로 조회될때
+				re=1; //아이디로 조회될때 (가입x)
 			}else {
-				re=-1;// 아이디 없을 때
+				re=-1;// 아이디 없을 때 (가입가능)
 			}
-		}catch(SQLException ex){ //쿼리 조회하다가 오류날 때
+		}catch(SQLException ex){ 
 			System.out.println("조회 실패");
-			ex.printStackTrace();
+			ex.printStackTrace();//쿼리 조회하다가 오류날 때
 		}finally{
 			try{
 				if(rs != null) rs.close();
 				if(pstmt != null) pstmt.close();
 				if(conn != null) conn.close();
 			}catch(Exception e){
-				e.printStackTrace();
+				e.printStackTrace(); //오류 발생 시 오류 출력
 			}
 		}
 		
 		return re;
 	}
 	
+	// 로그인시 아이디 존재 확인 여부 메소드 & 비밀번호 확인
 	public int userCheck(String id, String pwd) throws Exception {
-		int re=-1;
-		Connection conn=null;
-		PreparedStatement pstmt=null;
-		ResultSet rs=null;
+		int re=-1;// 결과값 분기처리 하기 위해 변수 선언
+		Connection conn=null; //dbcp 연결위한 참조변수 선언 / 데이터베이스 연결
+		PreparedStatement pstmt=null; //SQL문 사용하기 위한 참조변수 선언
+		ResultSet rs=null;//  쿼리 결과값 받기 위한 참조변수 선언
 		String db_mem_pwd;
-		String sql="SELECT MEM_PWD FROM MEMBERT WHERE mem_uid=?";
+		String sql="SELECT MEM_PWD FROM MEMBERT WHERE mem_uid=?"; //해당 id에 pw가 일치하는지 확인하는 쿼리
 		
 		try {
-			conn = getConnection();
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, id);
-			rs = pstmt.executeQuery();
+			conn = getConnection();//dbcp 연결해서 conn 참주변수로 받음
+			pstmt = conn.prepareStatement(sql);//conn 객체에서 prepareStatement 메소드의 매개변수로 쿼리문 사용
+			pstmt.setString(1, id); //쿼리 파라미터를 index로 받아서 처리
+			rs = pstmt.executeQuery(); //select 조회문은 executeQuery 메소드 처리
 			//while or if
 			if (rs.next()) {
 				db_mem_pwd = rs.getString("mem_pwd");
 				
 				if(db_mem_pwd.equals(pwd)) {
-					re=1;
+					re=1; // 비밀번호 일치
 				}else {
-					re=0;
+					re=0; // 비밀번호 불일치
 				}
-			}else {
+			}else { // 아이디가 존재하지 않음
 				re=-1;
 			}
 		}catch(SQLException ex){
-			System.out.println("��ȸ ����");
 			ex.printStackTrace();
 		}finally{
 			try{
@@ -136,17 +137,14 @@ public class MemberDBBean {
 		return re;
 	}
 	
-	private String mem_uid;
-	private String mem_pwd;
-	private String mem_name;
-	private String mem_email;
-	private Timestamp mem_regdate;
-	private String mem_address;
 	
+	// 아이디가 일치하는 멤버의 정보를 얻어오는 메소드
 	public MemberBean getMember(String id) throws Exception {
+		//(getMember -> set으로 받음)
 		Connection conn=null;
 		PreparedStatement pstmt=null;
 		ResultSet rs=null;
+		//String sql = "select * from memberT where mem_uid=?"; //웬만하면 다 적어주는게 좋음
 		String sql="SELECT mem_uid, mem_pwd, mem_name, mem_email, mem_regdate, mem_address"
 				+ " FROM MEMBERT WHERE mem_uid=?";
 		MemberBean member=null;
@@ -159,7 +157,7 @@ public class MemberDBBean {
 			//while or if
 			if (rs.next()) {
 				member = new MemberBean();
-				member.setMem_uid(rs.getString("mem_uid"));
+				member.setMem_uid(rs.getString("mem_uid"));//member.setMem_uid(rs.getString(1));
 				member.setMem_pwd(rs.getString("mem_pwd"));
 				member.setMem_name(rs.getString("mem_name"));
 				member.setMem_email(rs.getString("mem_email"));
@@ -181,6 +179,7 @@ public class MemberDBBean {
 		return member;
 	}
 	
+	// 회원정보 수정 메서드 (UPDATE)
 	public int updateMember(MemberBean member) throws Exception {
 		int re=-1;
 		Connection conn=null;
@@ -202,7 +201,7 @@ public class MemberDBBean {
 			pstmt.setString(4, member.getMem_address());
 			pstmt.setString(5, member.getMem_uid());
 			
-			re = pstmt.executeUpdate();
+			re = pstmt.executeUpdate(); //	SQL쿼리에 UPDATE사용시 필요
 			System.out.println("@@@### re ===>"+re);
 		}catch(SQLException ex){
 			System.out.println("변경 실패");
